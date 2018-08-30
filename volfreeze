@@ -1,7 +1,32 @@
 #!/bin/sh
 
-# Volume
-VOL="$(pacmd list-sources | grep "index:" -A7 | grep "<alsa_input.pci-0000_00_1b.0.analog-stereo>" -A6 | tail -n1 | sed 's/\s*volume: front-left: \([0-9]\+\) .*/\1/')"
+# AUTHOR: severoraz@gmail.com
+# LICENSE: CC-BY-SA 3.0
+# DESCRIPTION:
+# volfreeze is a script to freeze the microphone volume at the current level
+# or a percentage of the maximum given as an integer between 0 and 100 as the
+# first parameter.
+# USAGE:
+# volfreeze [LEVEL]
+
+# Declare globals
+#   Max volume: 65536
+VOLMAX=65536
+
+# Read argument
+if [ $# -eq 1 ]; then
+    # Input argument is a percentage of the maximum (22 % is a good value)
+    VOL=$(($1*$VOLMAX/100))
+else
+    # Volume
+    VOL="$(pacmd list-sources \
+        | grep "index:" -A7 \
+        | grep "<alsa_input.pci-0000_00_1b.0.analog-stereo>" -A6 \
+        | tail -n1 | \
+        sed 's/\s*volume: front-left: \([0-9]\+\) .*/\1/')"
+fi
+
+echo "fixing mic volume at $VOL ($(($VOL*100/$VOLMAX)) %)"
 
 while sleep 2; 
     do pacmd set-source-volume alsa_input.pci-0000_00_1b.0.analog-stereo $VOL; 
